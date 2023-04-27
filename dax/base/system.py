@@ -332,6 +332,9 @@ class DaxHasKey(DaxBase, abc.ABC):
         # Get the full system key
         system_key: str = self.get_system_key(key)
 
+        # Modify logging level of worker_db logger to suppress an unwanted warning message in get_dataset()
+        artiq.master.worker_db.logger.setLevel(logging.WARNING + 1)
+
         try:
             # Get value from system dataset with extra flags
             value: typing.Any = self.get_dataset(system_key, archive=archive)
@@ -356,6 +359,9 @@ class DaxHasKey(DaxBase, abc.ABC):
                     self.data_store.set(system_key, value)
         else:
             self.logger.debug(f'System dataset key "{key}" returned value "{value}"')
+        finally:
+            # Restore original logging level of worker_db logger
+            artiq.master.worker_db.logger.setLevel(logging.NOTSET)
 
         # Return value
         return value
